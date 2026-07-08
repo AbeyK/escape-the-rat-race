@@ -1,6 +1,7 @@
 # 🐀 ESCAPE THE RAT RACE
 
 A FAANG life simulator. One tap = one quarter of your life.
+<img width="866" height="712" alt="Screenshot 2026-07-08 at 3 41 40 PM" src="https://github.com/user-attachments/assets/144c794d-0b2b-4d46-b9d4-91ab91f59e14" />
 
 You are 22. You just signed at Goggle for $190,000 a year. The offer letter
 calls it "a journey." It is a wheel.
