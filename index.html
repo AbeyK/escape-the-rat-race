@@ -6,11 +6,16 @@
 <title>ESCAPE THE RAT RACE — a FAANG life sim</title>
 <meta name="description" content="You are 22. You just signed at Goggle for $190k. One tap = one quarter of your life. Fill the freedom bar and quit forever — or burn out, get replaced by an AI named Kevin, and join the permanent underclass.">
 <meta property="og:title" content="🐀 ESCAPE THE RAT RACE">
-<meta property="og:description" content="A FAANG life sim. One tap = one quarter of your life. Most runs never make it out. Can you?">
+<meta property="og:description" content="A FAANG life sim. One tap = one quarter of your life. Layoffs, lifestyle creep, an AI named Kevin, and Milton the desk rat.">
 <meta property="og:type" content="website">
-<meta name="twitter:card" content="summary">
+<meta property="og:url" content="https://www.abeyk.com/escape-the-rat-race/">
+<meta property="og:image" content="https://www.abeyk.com/escape-the-rat-race/og.png">
+<meta property="og:image:width" content="2400">
+<meta property="og:image:height" content="1260">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="🐀 ESCAPE THE RAT RACE">
-<meta name="twitter:description" content="A FAANG life sim. One tap = one quarter of your life. Most runs never make it out. Can you?">
+<meta name="twitter:description" content="A FAANG life sim. One tap = one quarter of your life. Layoffs, lifestyle creep, an AI named Kevin, and Milton the desk rat.">
+<meta name="twitter:image" content="https://www.abeyk.com/escape-the-rat-race/og.png">
 <meta name="theme-color" content="#0B0D08">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐀</text></svg>">
 <style>
@@ -238,6 +243,8 @@
   /* ---------- dock ---------- */
   #dock{position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:470px;
     padding:12px 12px 12px; z-index:50; background:linear-gradient(180deg, rgba(11,13,8,0), var(--bg0) 24%)}
+  #dockLbl{text-align:center; font-family:var(--marker); font-size:12px; color:var(--dim);
+    margin-bottom:6px; transform:rotate(-.6deg); letter-spacing:.04em}
   #acts{display:grid; grid-template-columns:1fr 1fr; gap:9px}
   #acts.locked{opacity:.35; pointer-events:none}
   .act{padding:10px 10px 8px; text-align:left; line-height:1.15; border-radius:var(--scrawl);
@@ -388,7 +395,8 @@
       <div id="endstamp">—</div>
     </div>
     <div class="endbtns">
-      <button class="bigbtn" id="copybtn">📋 &nbsp;Copy Result</button>
+      <button class="bigbtn hidden" id="sharebtn">📤 &nbsp;Share Result</button>
+      <button class="bigbtn" id="copybtn" style="width:100%">📋 &nbsp;Copy Result</button>
       <a class="ghost" id="tweetbtn" target="_blank" rel="noopener">Post on 𝕏</a>
       <button class="ghost" id="againbtn" style="width:100%">↻ &nbsp;Run It Back</button>
     </div>
@@ -396,6 +404,7 @@
 
   <!-- ============ DOCK ============ -->
   <nav id="dock" class="hidden">
+    <div id="dockLbl">▼ your move (one per quarter) ▼</div>
     <div id="acts"></div>
     <div id="ticker"><span id="tickertape"></span></div>
   </nav>
@@ -1188,9 +1197,7 @@ function yearGrid(){
     }
     years.push(e);
   }
-  const rows = [];
-  for (let i=0;i<years.length;i+=10) rows.push(years.slice(i,i+10).join(''));
-  return rows;
+  return years;
 }
 function ending(key){
   if (S.over) return; S.over=true;
@@ -1218,22 +1225,34 @@ function ending(key){
     ['Shareholder value created', '$'+S.cnt.sv.toFixed(2)+'T ▲'],
   ];
   $('obit').innerHTML = rows.map(r=>'<div class="orow"><span class="ok">'+r[0]+'</span><span class="ov">'+r[1]+'</span></div>').join('');
-  const grid = yearGrid();
+  const years = yearGrid();
+  if (years[years.length-1] !== E.ico) years.push(E.ico);
+  const grid = [];
+  for (let i=0;i<years.length;i+=10) grid.push(years.slice(i,i+10).join(''));
   $('grid').textContent = grid.join('\n');
 
-  const hdr = '🐀 ESCAPE THE RAT RACE'+(S.daily?' #'+S.daily:'');
-  const share = hdr+'\n'
-    + E.ico+' '+E.t.toUpperCase()+' · '+yrs+'y '+qs+'q\n'
-    + '💰 '+fmt$(S.nw)+' · 🔥 peak burnout '+R(S.peakBo)+'% · 📊 shareholder value ▲\n'
-    + quip+'\n\n'
-    + grid.join('\n')
-    + '\n\nmost runs never make it out. can you?';
+  const AGE_END = 22 + yrs;
+  const GAME_URL = 'https://www.abeyk.com/escape-the-rat-race/';
+  const hdr = '🐀 RAT RACE'+(S.daily?' #'+S.daily:'')+' · '+E.st+' '+E.ico;
+  const STING = {
+    escape: 'out in '+yrs+'y '+qs+'q with '+fmt$(S.nw)+' · peak burnout '+R(S.peakBo)+'%',
+    exit:   'sold the company at '+AGE_END+' · walked away with '+fmt$(S.nw)+' · peak burnout '+R(S.peakBo)+'%',
+    machine:'L10 at '+AGE_END+' · '+fmt$(S.nw)+' · never escaped. owns the maze now.',
+    burnout:'*dead at '+AGE_END+' · '+fmt$(S.nw)+' unspent · the on-call rotation already updated',
+    broke:  'evicted at '+AGE_END+' · net worth '+fmt$(S.nw)+' · shareholder value ▲ regardless',
+    old:    'expired at 60 · '+S.cnt.stand+' standups survived · never got out',
+  };
+  const share = hdr+'\n'+STING[key]+'\n\n'+grid.join('\n')+'\n\n'+GAME_URL;
   $('copybtn').onclick = ()=>{
     const done = ()=>{ $('copybtn').textContent='✓ Copied — go post it'; setTimeout(()=>$('copybtn').innerHTML='📋 &nbsp;Copy Result',1800); };
     if (navigator.clipboard && navigator.clipboard.writeText)
       navigator.clipboard.writeText(share).then(done).catch(()=>fallbackCopy(share,done));
     else fallbackCopy(share,done);
   };
+  const canShare = !!(navigator.share);
+  $('sharebtn').classList.toggle('hidden', !canShare);
+  $('copybtn').className = canShare ? 'ghost' : 'bigbtn';
+  if (canShare) $('sharebtn').onclick = ()=>{ navigator.share({text: share}).catch(()=>{}); };
   $('tweetbtn').href = 'https://x.com/intent/tweet?text='+encodeURIComponent(share);
   try{
     const runs=(+localStorage.ratrace_runs||0)+1; localStorage.ratrace_runs=runs;
@@ -1256,8 +1275,8 @@ function startRun(daily){
   $('feed').innerHTML='';
   tickerFeed();
   const first = S.name.split(' ')[0];
-  note('good','🪪','<b>Day one at '+S.co.name+'.</b> You are '+first.charAt(0)+first.slice(1).toLowerCase()+', '+LEVELS[0].n+', age 22. Orientation includes a video about "bringing your whole self to work." Bring less than that.');
-  note('good','🐀','A rat lives under your standing desk. You name him <b>Milton</b>. He\'s seen things. He will narrate your downfall (or escape) from the badge up top. <br><b>The goal:</b> fill the FREEDOM bar and quit forever. Mind the 🔥.');
+  note('','🪪','<b>Day one at '+S.co.name+'.</b> You are '+first.charAt(0)+first.slice(1).toLowerCase()+', '+LEVELS[0].n+', age 22. Orientation includes a video about "bringing your whole self to work." Bring less than that.');
+  note('','🐀','A rat lives under your standing desk. You name him <b>Milton</b>. He\'s seen things. He will narrate your downfall (or escape) from the badge up top. <br><b>The goal:</b> fill the FREEDOM bar and quit forever. Mind the 🔥. Your moves are the sticky buttons below ↓');
   render();
   miltonSay('day one. don\'t trust the snack wall.');
 }
